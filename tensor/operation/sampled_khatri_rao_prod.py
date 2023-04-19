@@ -29,3 +29,17 @@ def sampled_khatri_rao(S, factors):
         Z_S = np.multiply(Z_S, A_s)
 
     return Z_S
+
+def sampled_khatri_rao2(factor_mat, n_samples, skip_mat_index, indices_list=None):
+    if skip_mat_index is not None:
+        factor_mat = np.delete(factor_mat, skip_mat_index, axis=0)
+    if indices_list is None:
+        indices_list = [np.random.choice(factor_mat.shape[0], n_samples) for _ in range(factor_mat.shape[0])]
+    
+    rank = factor_mat.shape[1]
+
+    sampled_khatri_rao_mat = np.ones((n_samples, rank))
+    for index, matrix in zip(indices_list, factor_mat):
+        sampled_khatri_rao_mat = np.multiply(sampled_khatri_rao_mat, matrix[index, :])
+    
+    return sampled_khatri_rao_mat
