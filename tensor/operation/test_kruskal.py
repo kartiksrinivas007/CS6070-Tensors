@@ -5,7 +5,7 @@ Test file for kruskal.py
 import numpy as np
 # import pytest
 
-from operation import kruskal 
+from kruskal import kruskal 
 
 def test_kruskal():
     X = np.array([[[1, -1], [0, 0]], [[0, 0], [1, 1]]])
@@ -16,5 +16,6 @@ def test_kruskal():
     Y = kruskal(A, B, C)
     assert np.allclose(Y, X)
     
-test_kruskal()
+if __name__ == "__main__":
+    test_kruskal()
 
