@@ -1,5 +1,5 @@
 import numpy as np
-import index_manipulation as ind_man
+from .index_manipulation import * 
 
 def SKR(S :np.ndarray,factors,mode: int):
     """Finds sampled Khatri rao for a given range of indices
@@ -23,7 +23,7 @@ def SKR(S :np.ndarray,factors,mode: int):
     indices=np.zeros(shape=(S_sz,N),dtype=int)
     
     for i in range(S_sz):
-        indices[i,:]= ind_man.convert_to_tensor_index(tensor_shape,mode,(0,S[i]))
+        indices[i,:]= convert_to_tensor_index(tensor_shape,mode,(0,S[i]))
     ret=np.ones(shape=(S_sz,R))
     for n in range(N):
         if n==mode :

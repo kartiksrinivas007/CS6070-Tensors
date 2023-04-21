@@ -1,6 +1,5 @@
 import numpy as np
-import index_manipulation as ind_man
-import matricize
+from .index_manipulation import * 
 
 def Sampled_Matricize(S :np.ndarray,tensor :np.ndarray,mode: int):
     assert isinstance(tensor, np.ndarray),"Wrong data type only numpy array accepted for S" 
@@ -18,7 +17,7 @@ def Sampled_Matricize(S :np.ndarray,tensor :np.ndarray,mode: int):
     indices=np.zeros(shape=(I_n,S_sz,N),dtype=int)
     for i in range(I_n):
         for j in range(S_sz):
-            indices[i,j,:]= ind_man.convert_to_tensor_index(tensor.shape,mode,(i,S[j]))
+            indices[i,j,:]= convert_to_tensor_index(tensor.shape,mode,(i,S[j]))
 
     ret=np.zeros(shape=(I_n*S_sz))
     indices=indices.reshape(-1,indices.shape[-1])
