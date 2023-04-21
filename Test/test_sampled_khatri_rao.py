@@ -1,6 +1,10 @@
 import numpy as np
-from sampled_khatri_rao_prod import SKR
-from khatri_rao import khatri_rao
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__))+'/..')
+print(sys.path)
+from tensor.operation.sampled_khatri_rao_prod import SKR
+from tensor.operation.khatri_rao import khatri_rao
 
 class bcolors:
     HEADER = '\033[95m'

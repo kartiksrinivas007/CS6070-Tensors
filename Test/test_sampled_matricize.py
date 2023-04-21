@@ -1,6 +1,10 @@
 import numpy as np
-from sampled_matricize import Sampled_Matricize
-from matricize import matricize
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__))+'/..')
+print(sys.path)
+from tensor.operation.sampled_matricize import Sampled_Matricize
+from tensor.operation.matricize import matricize
 
 class bcolors:
     HEADER = '\033[95m'

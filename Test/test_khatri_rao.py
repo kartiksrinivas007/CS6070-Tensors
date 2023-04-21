@@ -4,8 +4,10 @@ Test file for khatri_rao.py
 
 import numpy as np
 import pytest
-
-from khatri_rao import khatri_rao, _get_product_index, _get_factor_indices, sampled_khatri_rao
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__))+'/..')
+from tensor.operation.khatri_rao import khatri_rao, _get_product_index, _get_factor_indices, sampled_khatri_rao
 
 def test_khatri_rao():
     """Test for the khatri_rao function.
@@ -94,3 +96,4 @@ if __name__ == "__main__":
     test_get_product_index()
     test_get_factor_indices()
     test_sampled_khatri_rao()
+    print("ALL TESTS PASSED")
