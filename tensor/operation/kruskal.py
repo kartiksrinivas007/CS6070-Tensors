@@ -11,7 +11,7 @@ def kruskal(*args):
     Args:
         *args (np.ndarray): List of matrices.
     Returns:
-        np.ndarray: Khatri-Rao product of the matrices.
+        np.ndarray: kronical product with identity tensor
     """
     assert len(args) > 1, "At least two matrices are required."
     assert all([A.ndim == 2 for A in args]), "All matrices must be 2D."
