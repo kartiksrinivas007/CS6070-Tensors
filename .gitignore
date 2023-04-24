@@ -133,3 +133,4 @@ dmypy.json
 data/
 Latex/
 *.tmp
+backup/

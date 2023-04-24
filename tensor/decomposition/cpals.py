@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 from tensor.operation.kruskal import kruskal
 from tensor.operation.khatri_rao import khatri_rao
 from tensor.operation.matricize import matricize
@@ -31,24 +32,44 @@ class CP_ALS:
         # Factor matrixes
         self.factors = []
 
+        self.statistics = {
+            "iterations": [],
+            "errors": [],
+            "fit": [],
+            "cum_fit_time": [],
+            "init_time": 0,
+        }
+
     def fit(self, check_convergence = True, stopping_criteria=None):
         self._init_factors()
+        prev_fitting_time = 0
+        start = time.time()
         P = np.power(2, 14)
         for itr in range(self.max_iter):
+            self.statistics["iterations"].append(itr)
             for mode in range(self.tensor.ndim):
                 self._update_factors(mode)
             
+
             if check_convergence and stopping_criteria == "sampled":
-                # print("here")
                 if StoppingCriteria(self.tensor, kruskal(*self.factors), P, threshold=self.eps):
-                    
                     break
             
             elif check_convergence and self._is_converged():
                 break
         
+            self.statistics["cum_fit_time"].append(prev_fitting_time + time.time()-start)
+            prev_fitting_time = self.statistics["cum_fit_time"][-1]
+            start = time.time()
+
+
+        # self.statistics["iterations"].append(itr+1)
+        # self.statistics["errors"].append(np.linalg.norm(self.tensor - kruskal(*self.factors)))
+        # self.statistics["fit"].append(1 - (self.statistics["errors"][-1] / np.linalg.norm(self.tensor)))
+
 
     def _init_factors(self):
+        start = time.time()
         if self.init_type == 'random':
             self.factors = [np.random.rand(self.tensor.shape[i], self.rank) for i in range(self.tensor.ndim)]
         elif self.init_type == 'hosvd':
@@ -64,6 +85,7 @@ class CP_ALS:
                 self.factors.append(M)
         else:
             raise Exception("Invalid initialisation method")
+        self.statistics["init_time"] = time.time() - start
 
 
     def _update_factors(self, mode):
@@ -75,8 +97,14 @@ class CP_ALS:
         self.factors[mode] = matricize(self.tensor, mode) @ np.linalg.pinv(khatriRaoProd).T
         
     def _is_converged(self):
-        return np.linalg.norm(self.tensor - kruskal(*self.factors))/np.linalg.norm(self.tensor) < self.eps
+        norm = np.linalg.norm(self.tensor)
+        error = np.linalg.norm(self.tensor - kruskal(*self.factors))
+        self.statistics["errors"].append(error)
+        self.statistics["fit"].append(1 - (error/norm))
+
+        return np.linalg.norm(error/norm) < self.eps
     
+
     def plot_errors(self):
         plt.plot(self.errors)
         plt.legend(["Errors"])
@@ -85,11 +113,12 @@ class CP_ALS:
         return plt
 
 
-    def decompose(X, rank, max_iter=10000, eps=0.01, init_type="random", check_convergence=True, stopping_criteria=None):
+    def decompose(X, rank, max_iter=10000, eps=0.01, init_type="random", check_convergence=True, stopping_criteria=None, fit=True):
         """
         Decomposes the tensor X into a sum of rank rank tensors
         """
         cp = CP_ALS(X, rank, max_iter, eps, init_type)
-        cp.fit(check_convergence, stopping_criteria=stopping_criteria)
-        return cp.factors
+        if fit:
+            cp.fit(check_convergence, stopping_criteria=stopping_criteria)
+        return cp.factors, cp.statistics
         

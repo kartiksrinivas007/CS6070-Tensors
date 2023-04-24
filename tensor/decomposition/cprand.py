@@ -1,4 +1,5 @@
 import numpy as np
+import time
 import matplotlib.pyplot as plt
 from tensor.operation.kruskal import kruskal
 from tensor.operation.matricize import matricize
@@ -35,22 +36,44 @@ class CP_RAND:
         # Current lamda value
         self.lamda = np.ones(self.rank)
 
+        # statistics measures
+        self.statistics = {
+            "iterations": [],
+            "errors": [],
+            "fit": [],
+            "cum_fit_time": [],
+            "init_time": 0,
+        }
+
+
     def fit(self, check_convergence=True):
         # training loop,self explanatory
         self._init_factors()
+        prev_fitting_time = 0
+        start = time.time()
         for i in range(self.max_iter):
+            self.statistics["iterations"].append(i)
             for mode in (range(self.tensor.ndim)):
                 self._update_factors(mode)
             if check_convergence and self._is_converged():
                 break
-        # print("Converged in {} iterations".format(i+1))
-        # print("Final error = ", self.errors[-1])
+
+            self.statistics["cum_fit_time"].append(prev_fitting_time + time.time()-start)
+            prev_fitting_time = self.statistics["cum_fit_time"][-1]
+            start = time.time()
+
+        # self.statistics["iterations"].append(i+1)
+        # self.statistics["errors"].append(self._get_error())
+        # self.statistics["fit"].append(1 - (self.statistics["errors"][-1] / np.linalg.norm(self.tensor)))
+
+
 
     def _init_factors(self):
         """
         initialize the factors using the `rank` many left singular 
         vectors of the corresponding mode-n matricization of the input tensor
         """
+        start = time.time()
         if self.init_type == 'random':
             self.factors = [np.random.rand(
                 self.tensor.shape[i], self.rank) for i in range(self.tensor.ndim)]
@@ -66,6 +89,8 @@ class CP_RAND:
                 self.factors.append(M)
         else:
             raise Exception("Invalid initialisation method")
+        self.statistics["init_time"] = time.time() - start
+
 
     def _update_factors(self, mode):
         """
@@ -98,6 +123,21 @@ class CP_RAND:
 
         self.lamda = col_norms
 
+    def _get_error(self):
+        """
+        compute the error between the current tensor
+        and the tensor obtained by multiplying the factors
+        """
+        tmp = self.factors[0]
+        norm = np.linalg.norm(self.tensor)
+
+        self.factors[0] = self.factors[0] * self.lamda
+        estim = kruskal(*self.factors)
+        error = np.linalg.norm(self.tensor - estim)
+        self.factors[0] = tmp
+
+        return error
+
     def _is_converged(self):
         """
         check if the algorithm has converged
@@ -105,14 +145,19 @@ class CP_RAND:
         and the tensor obtained by multiplying the factors
         """
         tmp = self.factors[0]
+        norm = np.linalg.norm(self.tensor)
 
         self.factors[0] = self.factors[0] * self.lamda
         estim = kruskal(*self.factors)
         error = np.linalg.norm(self.tensor - estim)
-        print("Error = ", error)
+        # print("Error = ", error)
+        self.statistics["errors"].append(error)
+        self.statistics["fit"].append(1 - error / np.linalg.norm(self.tensor))
+        # print("Error = ", error, "Fit = ", self.statistics["fit"][-1])
         self.errors.append(error)
         self.factors[0] = tmp
-        return error < self.eps
+        return (error/norm) < self.eps
+    
 
     def plot_errors(self):
         plt.plot(self.errors)
@@ -121,10 +166,11 @@ class CP_RAND:
         plt.ylabel("Frobenius norm")
         plt.show()
 
-    def decompose(X, rank, max_iter=10000, eps=0.01, init_type='random', check_convergence=True):
+    def decompose(X, rank, max_iter=10000, eps=0.01, init_type='random', check_convergence=True, fit = True):
         """
         Decompose the tensor `X` into a sum of `rank` many rank-1 tensors
         """
         cp = CP_RAND(X, rank, max_iter, eps, init_type)
-        cp.fit(check_convergence)
-        return cp.factors
+        if fit:
+            cp.fit(check_convergence)
+        return cp.factors, cp.statistics
