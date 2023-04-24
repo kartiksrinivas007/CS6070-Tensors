@@ -39,7 +39,9 @@ class CP_ALS:
                 self._update_factors(mode)
             
             if check_convergence and stopping_criteria == "sampled":
+                # print("here")
                 if StoppingCriteria(self.tensor, kruskal(*self.factors), P, threshold=self.eps):
+                    
                     break
             
             elif check_convergence and self._is_converged():
@@ -58,7 +60,7 @@ class CP_ALS:
                     M = np.concatenate((M, M_), axis=1)
                 else:
                     M = M[:, :self.rank]
-                print("M", M.shape)
+                # print("M", M.shape)
                 self.factors.append(M)
         else:
             raise Exception("Invalid initialisation method")
@@ -73,7 +75,7 @@ class CP_ALS:
         self.factors[mode] = matricize(self.tensor, mode) @ np.linalg.pinv(khatriRaoProd).T
         
     def _is_converged(self):
-        return np.linalg.norm(self.tensor - kruskal(*self.factors)) < self.eps
+        return np.linalg.norm(self.tensor - kruskal(*self.factors))/np.linalg.norm(self.tensor) < self.eps
     
     def plot_errors(self):
         plt.plot(self.errors)
