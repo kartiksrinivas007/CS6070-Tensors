@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from tensor.operation.kruskal import kruskal
 from tensor.operation.khatri_rao import khatri_rao
 from tensor.operation.matricize import matricize
+from tensor.operation.stopping_criteria import StoppingCriteria
 
 class CP_ALS:
     def __init__(self, tensor: np.ndarray, rank: int, max_iter=10000, eps=0.01, init_type: str = "random"):
@@ -30,13 +31,18 @@ class CP_ALS:
         # Factor matrixes
         self.factors = []
 
-    def fit(self, check_convergence = True):
+    def fit(self, check_convergence = True, stopping_criteria=None):
         self._init_factors()
+        P = np.power(2, 14)
         for itr in range(self.max_iter):
             for mode in range(self.tensor.ndim):
                 self._update_factors(mode)
             
-            if check_convergence and self._is_converged():
+            if check_convergence and stopping_criteria == "sampled":
+                if StoppingCriteria(self.tensor, kruskal(*self.factors), P, threshold=self.eps):
+                    break
+            
+            elif check_convergence and self._is_converged():
                 break
         
 
@@ -77,11 +83,11 @@ class CP_ALS:
         return plt
 
 
-    def decompose(X, rank, max_iter=10000, eps=0.01, init_type="random", check_convergence=True):
+    def decompose(X, rank, max_iter=10000, eps=0.01, init_type="random", check_convergence=True, stopping_criteria=None):
         """
         Decomposes the tensor X into a sum of rank rank tensors
         """
         cp = CP_ALS(X, rank, max_iter, eps, init_type)
-        cp.fit(check_convergence)
+        cp.fit(check_convergence, stopping_criteria=stopping_criteria)
         return cp.factors
         

@@ -1,7 +1,6 @@
 import numpy as np
-import generate
 
-def stopping_criteria(original_tensor: np.ndarray, reconstructed_tensor: np.ndarray, P_hat: int, threshold=0.01) -> bool:
+def StoppingCriteria(original_tensor: np.ndarray, reconstructed_tensor: np.ndarray, P_hat: int, threshold=0.01) -> bool:
     '''
     This function is used to check if the tensor has converged.
     It randomly chooses P possible indices of original_tensor and new_tensor and compares the elements at those indices.
