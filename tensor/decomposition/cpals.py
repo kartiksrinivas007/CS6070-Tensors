@@ -63,9 +63,9 @@ class CP_ALS:
             start = time.time()
 
 
-        # self.statistics["iterations"].append(itr+1)
-        # self.statistics["errors"].append(np.linalg.norm(self.tensor - kruskal(*self.factors)))
-        # self.statistics["fit"].append(1 - (self.statistics["errors"][-1] / np.linalg.norm(self.tensor)))
+        if check_convergence == False:
+            self.statistics["errors"].append(np.linalg.norm(self.tensor - kruskal(*self.factors)))
+            self.statistics["fit"].append(1 - (self.statistics["errors"][-1] / np.linalg.norm(self.tensor)))
 
 
     def _init_factors(self):

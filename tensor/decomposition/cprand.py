@@ -62,9 +62,10 @@ class CP_RAND:
             prev_fitting_time = self.statistics["cum_fit_time"][-1]
             start = time.time()
 
-        # self.statistics["iterations"].append(i+1)
-        # self.statistics["errors"].append(self._get_error())
-        # self.statistics["fit"].append(1 - (self.statistics["errors"][-1] / np.linalg.norm(self.tensor)))
+ 
+        if check_convergence == False:
+            self.statistics["errors"].append(np.linalg.norm(self.tensor - kruskal(*self.factors)))
+            self.statistics["fit"].append(1 - (self.statistics["errors"][-1] / np.linalg.norm(self.tensor)))
 
 
 
