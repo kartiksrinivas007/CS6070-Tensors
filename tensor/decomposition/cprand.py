@@ -5,6 +5,7 @@ from tensor.operation.kruskal import kruskal
 from tensor.operation.matricize import matricize
 from tensor.operation.sampled_khatri_rao_prod import SKR
 from tensor.operation.sampled_matricize import Sampled_Matricize
+from tensor.operation.stopping_criteria import StoppingCriteria
 
 
 class CP_RAND:
@@ -46,16 +47,22 @@ class CP_RAND:
         }
 
 
-    def fit(self, check_convergence=True):
+    def fit(self, check_convergence=True, stopping_criteria=None):
         # training loop,self explanatory
         self._init_factors()
         prev_fitting_time = 0
         start = time.time()
+        P = np.power(2, 14)
         for i in range(self.max_iter):
             self.statistics["iterations"].append(i)
             for mode in (range(self.tensor.ndim)):
                 self._update_factors(mode)
-            if check_convergence and self._is_converged():
+
+            if check_convergence and stopping_criteria == "sampled":
+                if StoppingCriteria(self.tensor, kruskal(*self.factors), P, threshold=self.eps):
+                    break
+
+            elif check_convergence and self._is_converged():
                 break
 
             self.statistics["cum_fit_time"].append(prev_fitting_time + time.time()-start)
@@ -167,11 +174,11 @@ class CP_RAND:
         plt.ylabel("Frobenius norm")
         plt.show()
 
-    def decompose(X, rank, max_iter=10000, eps=0.01, init_type='random', check_convergence=True, fit = True):
+    def decompose(X, rank, max_iter=10000, eps=0.01, init_type='random', check_convergence=True, stoppig_criteria = None,  fit = True):
         """
         Decompose the tensor `X` into a sum of `rank` many rank-1 tensors
         """
         cp = CP_RAND(X, rank, max_iter, eps, init_type)
         if fit:
-            cp.fit(check_convergence)
+            cp.fit(check_convergence, stoppig_criteria)
         return cp.factors, cp.statistics
